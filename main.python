@@ -1,0 +1,63 @@
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import Select
+from selenium.webdriver.support.wait import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+
+def download_voter_lists(district):
+    # Configure Selenium to use Chrome browser
+    driver = webdriver.Chrome()
+    
+    # Open the website
+    driver.get("https://ceoelection.maharashtra.gov.in/searchlist/")
+    
+    # Select the district
+    district_select = Select(driver.find_element(By.ID, "ddlDistrict"))
+    district_select.select_by_visible_text(district)
+    
+    # Wait for the assembly constituency options to load
+    assembly_constituency_select = WebDriverWait(driver, 10).until(
+        EC.presence_of_element_located((By.ID, "ddlAC"))
+    )
+    
+    # Get all the assembly constituency options
+    assembly_constituencies = assembly_constituency_select.find_elements(By.TAG_NAME, "option")
+    
+    # Iterate over each assembly constituency
+    for constituency in assembly_constituencies:
+        # Select the assembly constituency
+        assembly_constituency_select.select_by_value(constituency.get_attribute("value"))
+        
+        # Wait for the part options to load
+        part_select = WebDriverWait(driver, 10).until(
+            EC.presence_of_element_located((By.ID, "ddlPart"))
+        )
+        
+        # Get all the part options
+        parts = part_select.find_elements(By.TAG_NAME, "option")
+        
+        # Iterate over each part
+        for part in parts:
+            # Select the part
+            part_select.select_by_value(part.get_attribute("value"))
+            
+            # Wait for the CAPTCHA to load (You will need to manually enter the CAPTCHA)
+            WebDriverWait(driver, 10).until(
+                EC.presence_of_element_located((By.ID, "txtCaptcha"))
+            )
+            
+            # Click on the "Open PDF" button (You will need to manually click this)
+            open_pdf_button = driver.find_element(By.ID, "btnSubmit")
+            open_pdf_button.click()
+            
+            # Wait for the PDF to download (You will need to manually save the file)
+            WebDriverWait(driver, 10).until(
+                EC.presence_of_element_located((By.ID, "download"))
+            )
+    
+    # Close the browser
+    driver.quit()
+
+# Usage example:
+district = input("Enter the district: ")
+download_voter_lists(district)
